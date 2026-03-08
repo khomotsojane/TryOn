@@ -1,40 +1,61 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Float, Stars, useGLTF } from "@react-three/drei";
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { motion } from "framer-motion";
+import HeroModel from "./HeroModel";
 
-interface Hero3DProps {
-  modelPath: string;
-}
-
-const FloatingModel: React.FC<{ modelPath: string }> = ({ modelPath }) => {
-  const ref = useRef<any>(null);
-
-  const { scene } = useGLTF(modelPath);
-
-  useFrame(({ clock }) => {
-    if (ref.current) {
-      ref.current.rotation.y = clock.getElapsedTime() * 0.3;
-    }
-  });
-
-  return <primitive ref={ref} object={scene} scale={1.6} />;
-};
-
-const Hero3D: React.FC<Hero3DProps> = ({ modelPath }) => {
+export default function Hero() {
   return (
-    <Canvas camera={{ position: [0, 0, 5] }}>
-      <ambientLight intensity={1} />
-      <directionalLight position={[2, 2, 5]} />
+    <section className="relative h-screen w-full overflow-hidden bg-black text-white">
 
-      <Float speed={2} rotationIntensity={1} floatIntensity={1}>
-        <FloatingModel modelPath={modelPath} />
-      </Float>
+      {/* Background Video */}
+      <video
+        autoPlay
+        muted
+        loop
+        className="absolute w-full h-full object-cover opacity-30"
+      >
+        <source src="/fashion.mp4" type="video/mp4" />
+      </video>
 
-      <Stars />
-      <OrbitControls enableZoom={false} />
-    </Canvas>
+      {/* Content */}
+      <div className="relative z-10 grid md:grid-cols-2 items-center h-full px-12">
+
+        {/* LEFT TEXT */}
+        <div>
+          <motion.h1
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            className="text-6xl font-bold mb-6"
+          >
+            Try Fashion <br /> Before You Buy
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-xl mb-8 text-gray-300"
+          >
+            AI powered virtual try-on experience for modern shopping.
+          </motion.p>
+
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            className="bg-white text-black px-8 py-3 font-semibold"
+          >
+            Shop Now
+          </motion.button>
+        </div>
+
+        {/* RIGHT 3D MODEL */}
+        <div className="h-[500px]">
+          <HeroModel />
+        </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
+        ↓
+      </div>
+    </section>
   );
-};
-
-export default Hero3D;
+}
