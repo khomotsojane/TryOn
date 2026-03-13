@@ -90,12 +90,17 @@ const Featured: React.FC = () => {
               {selectedProduct.description}
             </p>
 
-            <button
-              onClick={() => navigate(`/tryon/${selectedProduct.id}`)}
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800"
-            >
-              Try On
-            </button>
+           <button
+  onClick={() =>
+    navigate(`/tryon/${selectedProduct.id}`, {
+      state: { clothingImage: selectedProduct.image }
+    })
+  }
+  className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800"
+>
+  Try On
+</button>
+
 
           </div>
         </div>
