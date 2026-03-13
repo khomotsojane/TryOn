@@ -1,73 +1,150 @@
-# React + TypeScript + Vite
+# AI VIRTUAL TRY-ON STORE
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## OVERVIEW
 
-Currently, two official plugins are available:
+The AI Virtual Try-On Store is an innovative web application designed to simulate a digital fitting room experience for online shoppers. The platform allows users to upload a photo or use their device camera to preview clothing items on their body before purchasing.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Using computer vision and pose detection technologies, the application analyzes human body landmarks to estimate body proportions and align clothing overlays realistically. This solution helps improve the online shopping experience by enabling users to visualize outfits and receive size recommendations before making purchasing decisions.
 
-## React Compiler
+The goal of this project is to demonstrate how artificial intelligence and computer vision can be applied within the fashion technology space to reduce uncertainty in online clothing purchases.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## SYSTEM FEATURES
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Virtual Fitting Room
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+The system provides a virtual fitting room where users can upload a personal image or activate their camera to simulate trying on clothing items digitally.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### AI Pose Detection
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The platform detects human body landmarks such as shoulders, hips, knees, and torso positions. These points are used to construct a skeletal model of the user’s body.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Body Measurement Estimation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Based on the detected pose landmarks, the system estimates body proportions including shoulder width, hip width, waist area, and torso alignment.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Clothing Overlay Simulation
+
+Clothing images are dynamically aligned with the user's body using the detected skeletal structure. This creates a visual representation of how an outfit might appear when worn.
+
+### Outfit Selection
+
+Users can browse a selection of clothing items and instantly preview them using the virtual try-on feature.
+
+### Educational Content
+
+The platform also includes an informational section explaining how artificial intelligence, pose detection, and computer vision technologies work together to power the virtual fitting experience.
+
+---
+
+## SYSTEM ARCHITECTURE
+
+The application follows a modern web architecture consisting of a frontend user interface and integrated AI computer vision models executed within the browser.
+
+User Interaction Flow:
+
+1. User uploads a photo or activates the camera.
+2. The system processes the image and detects body landmarks.
+3. A skeletal structure is generated using pose detection.
+4. Body measurements are estimated from the landmark positions.
+5. Selected clothing items are aligned and overlaid on the body.
+6. The user previews outfits and receives size recommendations.
+
+---
+
+## TECHNOLOGY STACK
+
+### Frontend Development
+
+React is used to build a dynamic and responsive user interface. The component-based architecture enables modular development and efficient UI rendering.
+
+TypeScript provides strong typing to improve code reliability and maintainability.
+
+Tailwind CSS is used to implement modern, responsive, and visually appealing styling.
+
+Vite is used as the development server and build tool for fast project initialization and optimized production builds.
+
+### Artificial Intelligence and Computer Vision
+
+MediaPipe Vision Tasks is used to perform pose detection and extract body landmarks from images or video streams.
+
+The Pose Landmarker model detects key body joints and skeletal positions which are used to calculate body proportions.
+
+TensorFlow.js enables machine learning inference directly within the browser environment.
+
+### Browser APIs
+
+The Web Camera API allows real-time camera access for live try-on simulations.
+
+The Canvas API is used to render skeleton overlays and clothing layers on top of user images.
+
+---
+
+## INSTALLATION AND SETUP
+
+Clone the repository
+
+
+Navigate to the project directory
+
+
+cd virtual-tryon-store
+
+
+Install dependencies
+
+
+npm install
+
+
+Start the development server
+
+
+npm run dev
+
+
+After running the server, open the application in the browser at:
+
+
+http://localhost:####
+
+
+---
+
+## FUTURE IMPROVEMENTS
+
+Future development may include the following enhancements:
+
+Advanced 3D clothing rendering for more realistic outfit simulation.
+
+Integration with real fashion retailer APIs to display live product catalogs.
+
+AI-powered outfit recommendation based on user preferences and body type.
+
+Real-time clothing physics simulation for dynamic fabric movement.
+
+Augmented reality support for mobile devices.
+
+Personalized user profiles to save outfits and body measurements.
+
+---
+
+## APPLICATIONS IN INDUSTRY
+
+Virtual try-on technology is rapidly becoming important in the global fashion industry. Online retailers are investing in digital fitting room solutions to reduce product return rates and improve customer satisfaction.
+
+This technology enables customers to visualize clothing before purchase, improving confidence in online shopping and supporting the growth of e-commerce platforms.
+
+---
+
+## AUTHOR
+
+Khomotso Jane Sekhaolelo
+Full Stack Software Developer
+
+---
+
+## LICENSE
+
+This project is released under the MIT License
