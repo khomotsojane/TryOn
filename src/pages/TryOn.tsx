@@ -2,49 +2,31 @@ import React, { useRef, useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
-import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
-import * as bodyPix from "@tensorflow-models/body-pix";
-import "@tensorflow/tfjs";
+import { useLocation } from "react-router-dom";
 
 const TryOn: React.FC = () => {
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [image, setImage] = useState<string | null>(null);
-  const [clothing, setClothing] = useState<string | null>(null);
-
   const [measurements, setMeasurements] = useState<any>(null);
   const [recommendedSize, setRecommendedSize] = useState("");
+  const [clothing, setClothing] = useState<string | null>(null);
 
-  const [stageSize, setStageSize] = useState({
-    width: 500,
-    height: 600,
-  });
-
-  const [clothesPosition, setClothesPosition] = useState({
-    x: 200,
-    y: 200,
-    width: 150,
-    height: 200,
-  });
-
-  const clothingRef = useRef<any>(null);
-  const transformerRef = useRef<any>(null);
-
-  const [clothingImg, setClothingImg] = useState<HTMLImageElement | null>(null);
+  // GET CLOTHING FROM FEATURED PAGE
+  const location = useLocation();
 
   useEffect(() => {
-    if (clothing) {
-      const img = new window.Image();
-      img.src = clothing;
-      img.onload = () => setClothingImg(img);
+    if (location.state?.clothingImage) {
+      setClothing(location.state.clothingImage);
     }
-  }, [clothing]);
+  }, [location]);
 
-  // CAMERA START
+  // START CAMERA
   const startCamera = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: true
     });
 
     if (videoRef.current) {
@@ -54,6 +36,7 @@ const TryOn: React.FC = () => {
 
   // UPLOAD IMAGE
   const uploadPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+
     if (!e.target.files) return;
 
     const file = e.target.files[0];
@@ -64,34 +47,12 @@ const TryOn: React.FC = () => {
     const img = new Image();
     img.src = url;
 
-    img.onload = () => {
-      analyzeBody(img);
-      segmentBody(img);
-    };
+    img.onload = () => analyzeBody(img);
   };
 
-  // BODY SEGMENTATION
-  const segmentBody = async (img: HTMLImageElement) => {
-    const net = await bodyPix.load();
-
-    const segmentation = await net.segmentPerson(img);
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    canvas.width = img.width;
-    canvas.height = img.height;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const mask = bodyPix.toMask(segmentation);
-
-    bodyPix.drawMask(canvas, img, mask, 0.7, 5);
-  };
-
-  // AI POSE DETECTION
+  // AI BODY ANALYSIS
   const analyzeBody = async (img: HTMLImageElement) => {
+
     const vision = await FilesetResolver.forVisionTasks(
       "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
     );
@@ -100,10 +61,10 @@ const TryOn: React.FC = () => {
       baseOptions: {
         modelAssetPath:
           "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
-        delegate: "GPU",
+        delegate: "GPU"
       },
       runningMode: "IMAGE",
-      numPoses: 1,
+      numPoses: 1
     });
 
     const result = poseLandmarker.detect(img);
@@ -118,12 +79,15 @@ const TryOn: React.FC = () => {
     const rightHip = landmarks[24];
     const leftKnee = landmarks[25];
 
+    // BODY MEASUREMENTS
     const shoulderWidth =
       Math.abs(leftShoulder.x - rightShoulder.x) * img.width;
 
-    const hipWidth = Math.abs(leftHip.x - rightHip.x) * img.width;
+    const hipWidth =
+      Math.abs(leftHip.x - rightHip.x) * img.width;
 
-    const legLength = Math.abs(leftHip.y - leftKnee.y) * img.height;
+    const legLength =
+      Math.abs(leftHip.y - leftKnee.y) * img.height;
 
     const waist = hipWidth * 0.9;
 
@@ -131,31 +95,43 @@ const TryOn: React.FC = () => {
       shoulders: shoulderWidth.toFixed(1),
       waist: waist.toFixed(1),
       hips: hipWidth.toFixed(1),
-      legs: legLength.toFixed(1),
+      legs: legLength.toFixed(1)
     });
 
-    // AUTO POSITION CLOTHING
-    setClothesPosition({
-      x: leftShoulder.x * img.width,
-      y: leftShoulder.y * img.height,
-      width: shoulderWidth,
-      height: hipWidth * 1.8,
-    });
-
+    // SIZE RECOMMENDATION
     if (shoulderWidth < 120) setRecommendedSize("S");
     else if (shoulderWidth < 160) setRecommendedSize("M");
     else setRecommendedSize("L");
 
-    poseLandmarker.close();
-  };
+    // DRAW SKELETON
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  // DRAG CLOTHING
-  const handleDragEnd = (e: any) => {
-    setClothesPosition({
-      ...clothesPosition,
-      x: e.target.x(),
-      y: e.target.y(),
-    });
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 3;
+
+    const drawLine = (a: any, b: any) => {
+      ctx.beginPath();
+      ctx.moveTo(a.x * img.width, a.y * img.height);
+      ctx.lineTo(b.x * img.width, b.y * img.height);
+      ctx.stroke();
+    };
+
+    drawLine(landmarks[11], landmarks[12]);
+    drawLine(landmarks[11], landmarks[23]);
+    drawLine(landmarks[12], landmarks[24]);
+    drawLine(landmarks[23], landmarks[24]);
+    drawLine(landmarks[23], landmarks[25]);
+
+    poseLandmarker.close();
   };
 
   return (
@@ -164,39 +140,29 @@ const TryOn: React.FC = () => {
 
       <div className="min-h-screen bg-gray-50 px-6 py-16">
 
-        <h1 className="text-4xl font-bold text-center mb-12">
-          AI Virtual Dressing Room
-        </h1>
+        {/* HEADER */}
+        <div className="text-center mb-16">
 
-        {/* UPLOAD */}
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
+          <h1 className="text-4xl md:text-5xl font-bold">
+            Virtual Try-On Room
+          </h1>
 
-          <div className="bg-white p-6 rounded-xl shadow">
-            <h2 className="text-xl font-semibold mb-4">Upload Photo</h2>
+          <p className="text-gray-600 mt-4 max-w-xl mx-auto">
+            Upload your photo or use your camera to preview outfits
+            and receive AI body measurements before buying clothes.
+          </p>
 
-            <input type="file" accept="image/*" onChange={uploadPhoto} />
+        </div>
 
-            {image && (
-              <div className="relative mt-6">
-
-                <img
-                  src={image}
-                  alt="user"
-                  className="w-full rounded-lg"
-                />
-
-                <canvas
-                  ref={canvasRef}
-                  className="absolute top-0 left-0 w-full h-full"
-                />
-
-              </div>
-            )}
-          </div>
+        {/* TRY OPTIONS */}
+        <div className="grid md:grid-cols-2 gap-10 max-w-6xl mx-auto mb-20">
 
           {/* CAMERA */}
-          <div className="bg-white p-6 rounded-xl shadow">
-            <h2 className="text-xl font-semibold mb-4">Use Camera</h2>
+          <div className="bg-white p-6 rounded-xl shadow-lg">
+
+            <h2 className="text-2xl font-semibold mb-4">
+              Use Camera
+            </h2>
 
             <button
               onClick={startCamera}
@@ -210,80 +176,65 @@ const TryOn: React.FC = () => {
               autoPlay
               className="mt-6 rounded-lg w-full"
             />
+
           </div>
-        </div>
 
-        {/* CLOTHING STAGE */}
-        {image && (
-          <div className="max-w-4xl mx-auto mt-20">
+          {/* UPLOAD PHOTO */}
+          <div className="bg-white p-6 rounded-xl shadow-lg">
 
-            <h2 className="text-2xl font-bold mb-6">Adjust Clothing</h2>
+            <h2 className="text-2xl font-semibold mb-4">
+              Upload Photo
+            </h2>
 
-            <Stage width={stageSize.width} height={stageSize.height}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={uploadPhoto}
+            />
 
-              <Layer>
+            {image && (
 
-                {clothingImg && (
-                  <KonvaImage
-                    image={clothingImg}
-                    x={clothesPosition.x}
-                    y={clothesPosition.y}
-                    width={clothesPosition.width}
-                    height={clothesPosition.height}
-                    draggable
-                    ref={clothingRef}
-                    onDragEnd={handleDragEnd}
+              <div className="relative mt-4">
+
+                <img
+                  src={image}
+                  alt="uploaded"
+                  className="rounded-lg w-full"
+                />
+
+                {/* SKELETON */}
+                <canvas
+                  ref={canvasRef}
+                  className="absolute top-0 left-0 w-full h-full"
+                />
+
+                {/* CLOTHING OVERLAY */}
+                {clothing && (
+                  <img
+                    src={clothing}
+                    alt="clothing"
+                    className="absolute top-[30%] left-[35%] w-[30%] pointer-events-none"
                   />
                 )}
 
-                <Transformer ref={transformerRef} />
+              </div>
 
-              </Layer>
-
-            </Stage>
-          </div>
-        )}
-
-        {/* CLOTHING OPTIONS */}
-        <div className="max-w-4xl mx-auto mt-20">
-
-          <h2 className="text-2xl font-bold mb-6">Try Outfit</h2>
-
-          <div className="flex gap-6">
-
-            <button
-              onClick={() => setClothing("/clothes/blazer.png")}
-              className="bg-black text-white px-6 py-3 rounded-lg"
-            >
-              Blazer
-            </button>
-
-            <button
-              onClick={() => setClothing("/clothes/jacket.png")}
-              className="bg-black text-white px-6 py-3 rounded-lg"
-            >
-              Jacket
-            </button>
-
-            <button
-              onClick={() => setClothing("/clothes/dress.png")}
-              className="bg-black text-white px-6 py-3 rounded-lg"
-            >
-              Dress
-            </button>
+            )}
 
           </div>
+
         </div>
 
-        {/* RESULTS */}
+        {/* AI RESULTS */}
         {measurements && (
-          <div className="max-w-4xl mx-auto mt-20 bg-white p-8 rounded-xl shadow">
+
+          <div className="max-w-4xl mx-auto mb-20 bg-white p-8 rounded-xl shadow">
 
             <h2 className="text-2xl font-bold mb-4">
-              AI Body Measurements
+              AI Body Analysis
             </h2>
 
-            <ul className="grid grid-cols-2 gap-4">
+            <ul className="grid grid-cols-2 gap-4 text-gray-700">
 
               <li>Shoulders: {measurements.shoulders}px</li>
               <li>Waist: {measurements.waist}px</li>
@@ -301,7 +252,60 @@ const TryOn: React.FC = () => {
             </div>
 
           </div>
+
         )}
+
+        {/* INFO SECTION */}
+        <div className="max-w-6xl mx-auto">
+
+          <h2 className="text-3xl font-bold mb-6">
+            How Virtual Try-On Works
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+
+            <div className="bg-white p-6 rounded-xl shadow">
+
+              <h3 className="font-semibold mb-2">
+                AI Body Detection
+              </h3>
+
+              <p className="text-gray-600 text-sm">
+                AI detects body landmarks using computer vision
+                to understand body structure.
+              </p>
+
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow">
+
+              <h3 className="font-semibold mb-2">
+                Skeleton Tracking
+              </h3>
+
+              <p className="text-gray-600 text-sm">
+                A virtual skeleton is drawn over the body to
+                estimate proportions and alignment.
+              </p>
+
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow">
+
+              <h3 className="font-semibold mb-2">
+                Outfit Simulation
+              </h3>
+
+              <p className="text-gray-600 text-sm">
+                Clothing images are aligned with shoulders and
+                hips to simulate how outfits might look.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
 
       </div>
 
